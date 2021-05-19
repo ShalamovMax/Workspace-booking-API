@@ -1,0 +1,33 @@
+version: '3.7'
+
+volumes:
+  postgres_data:
+  static_volume:
+
+services:
+  db:
+    image: postgres:13.1
+    ports:
+    - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+  web:
+    build: .
+    command: gunicorn test_Liis.wsgi:application --bind 0.0.0.0:8000 
+    restart: always
+    volumes: 
+      - static_volume:/code/static
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/code/static
+    ports:
+      - 80:80
+    depends_on:
+      - web
